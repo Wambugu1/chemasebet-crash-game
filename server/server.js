@@ -10,14 +10,15 @@ app.use(express.json());
 
 const server = http.createServer(app);
 
-// Configure CORS for production
+// Configure CORS for production - Allow your Netlify frontend
 const io = new Server(server, {
   cors: {
     origin: [
+      "https://chemasebet.netlify.app",
+      "https://chemasebet-crash-game.vercel.app",
       "http://localhost:3000",
       "http://localhost:5173",
-      "https://chemasebet-crash.vercel.app",
-      "https://chemasebet-crash.onrender.com"
+      "https://chemasebet-crash-game.onrender.com"
     ],
     methods: ["GET", "POST"],
     credentials: true
