@@ -121,7 +121,7 @@ function startRound() {
     const elapsed = (Date.now() - roundStartTime) / 1000;
     multiplier = Number((Math.pow(1.07, elapsed * 1.2)).toFixed(2));
     
-    if (multiplier > 20) multiplier = 20;
+    if (multiplier > 150) multiplier = 150;
 
     io.emit("multiplier", { multiplier: multiplier.toFixed(2) });
 
