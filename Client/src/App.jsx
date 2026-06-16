@@ -1,14 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import io from "socket.io-client";
 import CrashChart from "./components/CrashChart";
+import Admin from "./Admin";
 import "./index.css";
 
-// Change this to your production URL when deployed
-const SOCKET_URL = process.env.NODE_ENV === "production" 
-  ? "https://chemasebet-crash-game.onrender.com" 
-  : "http://localhost:5000";
-
-const socket = io(SOCKET_URL);
+const socket = io("https://chemasebet-crash-game.onrender.com");
 
 function getMultiplierColor(m, crashed) {
   if (crashed) return "#ff3d5a";
@@ -18,6 +14,9 @@ function getMultiplierColor(m, crashed) {
 }
 
 export default function App() {
+  // Check if we should show admin panel
+  const [showAdmin, setShowAdmin] = useState(false);
+  
   const [balance, setBalance] = useState(0);
   const [multiplier, setMultiplier] = useState(1.0);
   const [gameState, setGameState] = useState("waiting");
@@ -43,6 +42,32 @@ export default function App() {
   const showNotification = useCallback((msg, type = "info") => {
     setNotification({ msg, type });
     setTimeout(() => setNotification(null), 3000);
+  }, []);
+
+  // Check URL for admin parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('admin') === 'true') {
+      setShowAdmin(true);
+    }
+  }, []);
+
+  // Auto-fullscreen on mobile devices
+  useEffect(() => {
+    // Check if it's a mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    // Also check screen width
+    const isSmallScreen = window.innerWidth <= 768;
+    
+    if ((isMobile || isSmallScreen) && !document.fullscreenElement) {
+      // Small delay to ensure page is loaded
+      setTimeout(() => {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.log(`Fullscreen error: ${err.message}`);
+        });
+      }, 1000);
+    }
   }, []);
 
   // Fullscreen handling
@@ -234,10 +259,6 @@ export default function App() {
       showNotification(message, "error");
     });
 
-    socket.on("withdrawSuccess", () => {
-      console.log("Withdraw confirmed by server");
-    });
-
     return () => socket.removeAllListeners();
   }, [activeBet1, activeBet2, currentBet1, currentBet2, pendingBet1, pendingBet2, showNotification]);
 
@@ -300,6 +321,11 @@ export default function App() {
   const multColor = getMultiplierColor(multiplier, crashed);
   const isWaiting = gameState === "waiting";
 
+  // If admin mode, show admin panel
+  if (showAdmin) {
+    return <Admin />;
+  }
+
   return (
     <div className="app">
       <header className="header">
@@ -316,7 +342,7 @@ export default function App() {
               <input
                 type="text"
                 className="join-code-input-small"
-                placeholder="Enter unique code"
+                placeholder="Enter code"
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleJoinWithCode()}
